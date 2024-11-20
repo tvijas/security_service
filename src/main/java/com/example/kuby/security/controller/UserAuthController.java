@@ -111,7 +111,6 @@ public class UserAuthController {
     @PostMapping("/change-password")
     @WithRateLimitProtection
     public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
-
         submissionCodeService.sendCodeToEmail(request.getEmail(), EmailCodeType.CHANGE_PASSWORD, Provider.LOCAL);
 
         submissionCodeService.cacheEmailAndPassword(request.getEmail(), request.getPassword());

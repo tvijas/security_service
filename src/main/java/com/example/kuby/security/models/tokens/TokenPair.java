@@ -7,9 +7,9 @@ public record TokenPair(
         RefreshToken refreshToken
 ) {
     public String getAccessTokenValue(){
-        return this.accessToken.getAccessToken();
+        return this.accessToken.accessToken();
     }
     public String getRefreshTokenValue(){
-        return this.refreshToken.getRefreshToken();
+        return this.refreshToken.refreshToken();
     }
 }
