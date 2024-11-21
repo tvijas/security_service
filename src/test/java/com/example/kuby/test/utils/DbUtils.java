@@ -6,12 +6,14 @@ import com.example.kuby.security.models.enums.UserRoles;
 import com.example.kuby.foruser.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.TestComponent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Component
+@TestComponent
 @RequiredArgsConstructor
 public class DbUtils {
     private final UserRepo userRepo;

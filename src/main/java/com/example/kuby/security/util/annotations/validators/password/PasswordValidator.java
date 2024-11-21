@@ -3,6 +3,7 @@ package com.example.kuby.security.util.annotations.validators.password;
 import org.passay.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.example.kuby.security.constant.Password.MAX_SIZE;
 import static com.example.kuby.security.constant.Password.MIN_SIZE;
@@ -15,21 +16,19 @@ public final class PasswordValidator {
             new org.passay.PasswordValidator(new CharacterRule(EnglishCharacterData.UpperCase, 1)),
             new org.passay.PasswordValidator(new CharacterRule(EnglishCharacterData.Digit, 1)),
             new org.passay.PasswordValidator(new CharacterRule(CustomCharacterData.Special, 1)),
-            new org.passay.PasswordValidator(new AllowedRegexRule("^[a-zA-Z0-9@$!%*?&_-]+$")),
-            new org.passay.PasswordValidator(new WhitespaceRule())
+            new org.passay.PasswordValidator(new AllowedRegexRule("^[a-zA-Z0-9@$!%*?&_-]+$"))
     );
 
-    public boolean validate(String password) {
+    public Optional<org.passay.PasswordValidator> validate(String password) {
         if (password == null || password.trim().isEmpty()) {
-            return false;
+            return Optional.of(new org.passay.PasswordValidator());
         }
 
         PasswordData passwordData = new PasswordData(password);
 
         return passwordValidators.stream()
                 .filter(passwordValidator -> !passwordValidator.validate(passwordData).isValid())
-                .findFirst()
-                .isEmpty();
+                .findFirst();
     }
 }
 
