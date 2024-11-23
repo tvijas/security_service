@@ -10,7 +10,7 @@ public class TaskDTO {
     private UUID id;
     private UUID creatorId;
     private String name;
-    private String deadLine;
+    private LocalDateTime deadLine;
     private Boolean isFinished;
     private Boolean isExpired;
 }

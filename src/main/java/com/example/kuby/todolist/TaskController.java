@@ -26,7 +26,7 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED).body(taskService.create(
                 request.getName(),
                 user.getId(),
-                LocalDateTimeParser.parse(request.getDeadLine()),
+                request.getDeadLine(),
                 request.isFinished()
         ));
     }
@@ -39,13 +39,9 @@ public class TaskController {
     @PutMapping("/{id}")
     public ResponseEntity<TaskDTO> update(@PathVariable UUID id,
                                           @RequestParam(required = false) String name,
-                                          @RequestParam(required = false) String deadLine,
+                                          @RequestParam(required = false) LocalDateTime deadLine,
                                           @Parameter(hidden = true) @AuthenticationPrincipal UserEntity user) {
-        LocalDateTime formattedDeadline = null;
-        if (deadLine != null)
-            formattedDeadline = LocalDateTimeParser.parse(deadLine);
-
-        return ResponseEntity.ok(taskService.update(id, name, formattedDeadline, user.getId()));
+        return ResponseEntity.ok(taskService.update(id, name, deadLine, user.getId()));
     }
 
     @PatchMapping("/{id}")

@@ -3,12 +3,15 @@ package com.example.kuby.todolist;
 import com.example.kuby.KubyApplication;
 import com.example.kuby.foruser.UserEntity;
 import com.example.kuby.security.models.request.LoginRequest;
+import com.example.kuby.test.utils.TestContainersInitializer;
 import com.example.kuby.todolist.CreateTaskRequest;
 import com.example.kuby.todolist.Task;
 import com.example.kuby.todolist.TaskRepo;
 import com.example.kuby.test.utils.DbUtils;
 import com.example.kuby.test.utils.JsonPrettyPrinter;
+import com.example.kuby.utils.LocalDateTimeFormatter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -30,13 +34,11 @@ import java.util.UUID;
 import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.parseUserIdFromAuthHeader;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@Testcontainers
+@Import(DbUtils.class)
 @SpringBootTest(classes = {KubyApplication.class})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class TaskControllerTest {
+public class TaskControllerTest extends TestContainersInitializer {
     @Autowired
     private MockMvc mvc;
 
@@ -46,25 +48,7 @@ public class TaskControllerTest {
     private static UUID taskId;
     @Autowired
     private DbUtils dbUtils;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
-    @Container
-    @ServiceConnection
-    static RedisContainer redis = new RedisContainer(DockerImageName.parse("redis:6.2.6"));
-
-    @BeforeAll
-    static void beforeAll() {
-        postgres.start();
-        redis.start();
-    }
-
-    @AfterAll
-    static void afterAll() {
-        postgres.stop();
-        redis.stop();
-    }
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Test
     @Order(1)
@@ -87,10 +71,11 @@ public class TaskControllerTest {
     @Test
     @Order(2)
     public void create_success_test() throws Exception {
-        String deadLine = LocalDateTime.now().toString().replace("T", " ").split("\\.")[0];
-        System.out.println(deadLine);
-
-        CreateTaskRequest request = new CreateTaskRequest("some name", deadLine, true);
+        CreateTaskRequest request = new CreateTaskRequest(
+                "some name",
+                LocalDateTime.now().plusMinutes(1),
+                true
+        );
 
         mvc.perform(post("/api/task")
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -104,11 +89,8 @@ public class TaskControllerTest {
     @Test
     @Order(3)
     public void update_success_test() throws Exception{
-        String deadLine = LocalDateTime.now().plusYears(10).toString().replace("T", " ").split("\\.")[0];
-        System.out.println(deadLine);
-
         CreateTaskRequest request = new CreateTaskRequest();
-        request.setDeadLine(deadLine);
+        request.setDeadLine(LocalDateTime.now().plusYears(10));
 
         mvc.perform(put("/api/task/" + taskId.toString())
                 .characterEncoding(StandardCharsets.UTF_8)

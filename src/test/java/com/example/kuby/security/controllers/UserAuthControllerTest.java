@@ -17,11 +17,9 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -98,8 +96,7 @@ public class UserAuthControllerTest extends TestContainersInitializer{
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(objMapper.writeValueAsString(signUpRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors['email']").value("Email doesn't exists"))
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.errors['email']").value("Email doesn't exist"));
     }
 
     @Test

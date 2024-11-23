@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -11,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class CreateTaskRequest {
     @NotBlank
     private String name;
-    @NotBlank
-    private String deadLine;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime deadLine;
     private boolean isFinished;
 }
