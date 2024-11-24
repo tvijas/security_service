@@ -3,6 +3,11 @@ package com.example.kuby.foruser;
 import com.example.kuby.security.models.enums.Provider;
 import com.example.kuby.security.models.enums.UserRoles;
 import com.example.kuby.todolist.Task;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +30,7 @@ import java.util.UUID;
 @Entity
 @Data
 @org.springframework.data.relational.core.mapping.Table(name = "users")
-public class UserEntity implements  UserDetails {
+public class UserEntity implements  UserDetails, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -37,7 +43,11 @@ public class UserEntity implements  UserDetails {
     @Column(nullable = false)
     private Provider provider;
     private String loginProviderId;
+//    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+//    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastActiveDate;
+//    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+//    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime registrationDate;
     @Column(columnDefinition = "BOOLEAN DEFAULT false",nullable = false)
     private boolean isEmailSubmitted;

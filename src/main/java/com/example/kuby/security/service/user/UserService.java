@@ -1,5 +1,7 @@
 package com.example.kuby.security.service.user;
 
+import com.example.kuby.foruser.UserCache;
+import com.example.kuby.security.constant.RedisCacheNames;
 import com.example.kuby.exceptions.BasicException;
 import com.example.kuby.foruser.UserEntity;
 import com.example.kuby.security.models.enums.Provider;
@@ -7,7 +9,7 @@ import com.example.kuby.security.models.enums.UserRoles;
 import com.example.kuby.foruser.UserRepo;
 import com.example.kuby.security.repos.token.TokensRepo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -47,9 +49,11 @@ public class UserService implements UserDetailsService {
     }
 
     @Override
+    @Cacheable(cacheNames = RedisCacheNames.USER_DETAILS, key = "#login")
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        return userRepo.findByLogin(login).orElseThrow(() ->
+        UserEntity userEntity = userRepo.findByLogin(login).orElseThrow(() ->
                 new BasicException(Map.of("login", "User with such login not found"), HttpStatus.NOT_FOUND));
+        return new UserCache(userEntity.getLogin(), userEntity.getPassword(), userEntity.getRoles());
     }
 
     @Transactional

@@ -15,13 +15,14 @@ import java.util.Collections;
 @Component
 @RequiredArgsConstructor
 public class OauthFailureHandler implements AuthenticationFailureHandler {
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         String errorMessage = "Authentication failed: " + exception.getMessage();
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.getWriter().write(new ObjectMapper().writeValueAsString(Collections.singletonMap("errors",
+        response.getWriter().write(objectMapper.writeValueAsString(Collections.singletonMap("errors",
                 Collections.singletonMap("error", errorMessage))));
     }
 }

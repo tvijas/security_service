@@ -28,13 +28,13 @@ public class Task {
     @Column(nullable = false)
     private LocalDateTime deadLine;
     @Column(columnDefinition = "BOOLEAN DEFAULT false",nullable = false)
-    private Boolean isFinished;
+    private boolean isFinished;
     @Column(nullable = false)
-    private Boolean isExpired;
+    private boolean isExpired;
 
     @PrePersist
     @PreUpdate
     private void prePersist() {
-        setIsExpired(!deadLine.isAfter(LocalDateTime.now()));
+        setExpired(!deadLine.isAfter(LocalDateTime.now()));
     }
 }

@@ -1,6 +1,7 @@
 package com.example.kuby.todolist;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,5 +17,6 @@ public class CreateTaskRequest {
     private String name;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime deadLine;
-    private boolean isFinished;
+    @NotNull
+    private Boolean isFinished;
 }

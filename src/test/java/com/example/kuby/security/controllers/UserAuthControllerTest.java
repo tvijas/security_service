@@ -27,9 +27,11 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 @SpringBootTest(classes = {KubyApplication.class}, properties = {"spring.profiles.active=test"})
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -56,12 +58,10 @@ public class UserAuthControllerTest extends TestContainersInitializer{
 
         mvc.perform(post("/api/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
                         .content(objMapper.writeValueAsString(signUpRequest)))
                 .andExpect(status().isCreated());
 
         mvc.perform(post("/api/user/verify/local")
-                        .characterEncoding(StandardCharsets.UTF_8)
                         .param("code", "STRING_PIZDATIY_CODE")
                         .param("email", email))
                 .andExpect(status().isOk());
@@ -69,14 +69,13 @@ public class UserAuthControllerTest extends TestContainersInitializer{
         LoginRequest loginRequest = new LoginRequest("lox322228", "fsfsDSF@545AADFDGEWE3AR");
 
         mvc.perform(post("/api/user/login")
-                        .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(var1 -> {
-                    System.out.println(var1.getResponse().getHeader("Authorization"));
-                    authHeader = var1.getResponse().getHeader("Authorization");
-                });
+                .andExpect(header().exists("Authorization"))
+                .andExpect(header().exists("X-Refresh-Token"))
+                .andExpect(var1 -> authHeader = var1.getResponse().getHeader("Authorization"))
+                .andDo(print());
     }
 
     @Test
@@ -93,10 +92,10 @@ public class UserAuthControllerTest extends TestContainersInitializer{
         SignUpRequest signUpRequest = new SignUpRequest("progamer2015@fimoz.club", "lox228322", "fsfsDSF@545AADFDGEWE3AR");
         mvc.perform(post("/api/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
                         .content(objMapper.writeValueAsString(signUpRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors['email']").value("Email doesn't exist"));
+                .andExpect(jsonPath("$.errors['email']").value("Email doesn't exists"))
+                .andDo(print());
     }
 
     @Test
@@ -106,7 +105,6 @@ public class UserAuthControllerTest extends TestContainersInitializer{
         ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest(email, "123FimozikZ1GH4AIL41@34");
 
         mvc.perform(post("/api/user/change-password")
-                        .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objMapper.writeValueAsString(changePasswordRequest)))
                 .andExpect(status().isAccepted());

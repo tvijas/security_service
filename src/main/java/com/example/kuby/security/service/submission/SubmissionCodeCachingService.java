@@ -1,5 +1,6 @@
 package com.example.kuby.security.service.submission;
 
+import com.example.kuby.security.constant.RedisPrefixes;
 import com.example.kuby.security.models.enums.Provider;
 import com.example.kuby.security.util.generate.CodeGenerator;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
+import static com.example.kuby.security.constant.RedisPrefixes.*;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -16,9 +19,6 @@ class SubmissionCodeCachingService {
 
     private final StringRedisTemplate redisTemplate;
     private final CodeGenerator codeGenerator;
-    private final String EMAIL_SUBMISSION_CODE_PREFIX = "submission_code:";
-    private final String PASSWORD_CHANGE_SUBMISSION_CODE_PREFIX = "change_password_submission_code:";
-    private final String NEW_PASSWORD = "new_password:";
 
     public String createEmailSubmissionCodeWithExpiration(String email, Provider provider) {
 

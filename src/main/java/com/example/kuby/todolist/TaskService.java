@@ -19,7 +19,7 @@ public class TaskService {
     private final TaskRepo taskRepo;
     private final Mapper mapper;
 
-    public TaskDTO create(String name, UUID userId, LocalDateTime deadLine, Boolean isFinished) {
+    public TaskDTO create(String name, UUID userId, LocalDateTime deadLine, boolean isFinished) {
         return mapper.convertTaskToDTO(taskRepo.save(Task.builder()
                 .name(name)
                 .creator(UserEntity.builder()

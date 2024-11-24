@@ -27,7 +27,7 @@ public class TaskController {
                 request.getName(),
                 user.getId(),
                 request.getDeadLine(),
-                request.isFinished()
+                request.getIsFinished()
         ));
     }
 
