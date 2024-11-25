@@ -32,8 +32,8 @@ public class SubmissionCodeService {
 
     @Transactional
     public void sendCodeToEmail(String toEmail, EmailCodeType codeType, Provider provider) {
-        userRepo.findByEmailAndProvider(toEmail, Provider.LOCAL)
-                .orElseThrow(() -> new BasicException(Map.of("email", "User with email " + toEmail + " not found."), HttpStatus.NOT_FOUND));
+        if(!userRepo.existsByEmailAndProvider(toEmail, provider))
+               throw new BasicException(Map.of("email", "User with email " + toEmail + " not found."), HttpStatus.NOT_FOUND);
 
         String code = null;
         String base = null;
@@ -71,18 +71,6 @@ public class SubmissionCodeService {
             throw new BasicException(Map.of("email", "User with such email not found"), HttpStatus.NOT_FOUND);
     }
 
-    @Transactional
-    public void verifyOauthAccount(String code, String email, Provider provider, String login) {
-        if (!submissionCodeCachingService.isEmailSubmissionCodeExists(code, email, provider))
-            throw new BasicException(Map.of("code", "Code is expired or not exists "), HttpStatus.NOT_FOUND);
-
-        if (userRepo.existsByLogin(login))
-            throw new BasicException(Map.of("login", "User with such login already exists"), HttpStatus.NOT_FOUND);
-
-        if (userRepo.updateLoginAndSetEmailSubmittedByEmailAndProvider(login, email,provider) != 1)
-            throw new BasicException(Map.of("email", "User with such email not found"), HttpStatus.NOT_FOUND);
-    }
-
     public String verifyChangePasswordSubmissionEmailCode(String code, String email) {
         if (!submissionCodeCachingService.isChangePasswordSubmissionCodeExists(code, email))
             throw new BasicException(Map.of("code", "Code not found"), HttpStatus.NOT_FOUND);
@@ -92,17 +80,6 @@ public class SubmissionCodeService {
 
     public void cacheEmailAndPassword(String email, String password) {
         submissionCodeCachingService.cacheEmailAndNewPasswordUntilSubmission(email, password);
-    }
-
-    @Transactional
-    public String generateOauthSubmissionUrl(String email, Provider provider) {
-        if (provider.equals(Provider.LOCAL))
-            throw new BasicException(Map.of("provider",
-                    "Local provider can not be used for generating of the OAuth submission url"),
-                    HttpStatus.BAD_REQUEST);
-        String code = submissionCodeCachingService.createEmailSubmissionCodeWithExpiration(email, provider);
-        return frontEndUrl + "/api/user/verify/oauth?code=" + code + "&email=" + email + "&provider=" + provider.toString().toLowerCase();
-        //frontEndUrl + base + link
     }
 
     //    @Transactional

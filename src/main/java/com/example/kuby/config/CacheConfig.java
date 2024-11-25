@@ -28,7 +28,7 @@ public class CacheConfig {
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(defaultCacheConfig)
                 .withCacheConfiguration(
-                        RedisCacheNames.USER_DETAILS,
+                        RedisCacheNames.USERS_CACHE,
                         defaultCacheConfig.entryTtl(Duration.ofMinutes(5)))
                 .build();
     }

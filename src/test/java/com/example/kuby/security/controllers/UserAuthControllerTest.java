@@ -10,10 +10,7 @@ import com.example.kuby.security.models.request.SignUpRequest;
 import com.example.kuby.security.util.generate.CodeGenerator;
 import com.example.kuby.test.utils.TestContainersInitializer;
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,7 +51,7 @@ public class UserAuthControllerTest extends TestContainersInitializer{
     @Order(1)
     void test_register_verify_login() throws Exception {
         Mockito.when(this.codeGenerator.generateCode()).thenReturn("STRING_PIZDATIY_CODE");
-        SignUpRequest signUpRequest = new SignUpRequest(email, "lox322228", "fsfsDSF@545AADFDGEWE3AR");
+        SignUpRequest signUpRequest = new SignUpRequest(email, "fsfsDSF@545AADFDGEWE3AR");
 
         mvc.perform(post("/api/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -66,7 +63,7 @@ public class UserAuthControllerTest extends TestContainersInitializer{
                         .param("email", email))
                 .andExpect(status().isOk());
 
-        LoginRequest loginRequest = new LoginRequest("lox322228", "fsfsDSF@545AADFDGEWE3AR");
+        LoginRequest loginRequest = new LoginRequest(email, "fsfsDSF@545AADFDGEWE3AR");
 
         mvc.perform(post("/api/user/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -78,8 +75,8 @@ public class UserAuthControllerTest extends TestContainersInitializer{
                 .andDo(print());
     }
 
-    @Test
     @Order(2)
+    @RepeatedTest(5)
     void test_secured_endpoint_success() throws Exception {
         mvc.perform(post("/testing")
                         .header("Authorization", authHeader))
@@ -89,7 +86,7 @@ public class UserAuthControllerTest extends TestContainersInitializer{
     @Test
     @Order(3)
     void test_wrong_domain_failure() throws Exception {
-        SignUpRequest signUpRequest = new SignUpRequest("progamer2015@fimoz.club", "lox228322", "fsfsDSF@545AADFDGEWE3AR");
+        SignUpRequest signUpRequest = new SignUpRequest("progamer2015@fimoz.club", "fsfsDSF@545AADFDGEWE3AR");
         mvc.perform(post("/api/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objMapper.writeValueAsString(signUpRequest)))

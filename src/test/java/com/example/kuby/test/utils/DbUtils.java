@@ -27,10 +27,8 @@ public class DbUtils {
 
     public UserEntity createUser() {
         String uniqueEmail = (userCount == 0) ? testEmail : userCount + testEmail;
-        String uniqueLogin = (userCount == 0) ? "somelogin" : userCount + "somelogin";
         UserEntity user = UserEntity.builder()
                 .email(uniqueEmail)
-                .login(uniqueLogin)
                 .password(passwordEncoder.encode("18-Bad-Boy-18"))
                 .isEmailSubmitted(true)
                 .provider(Provider.LOCAL)

@@ -1,5 +1,6 @@
 package com.example.kuby.security.service.user;
 
+import com.example.kuby.foruser.CustomUserDetails;
 import com.example.kuby.foruser.UserCache;
 import com.example.kuby.security.constant.RedisCacheNames;
 import com.example.kuby.exceptions.BasicException;
@@ -11,8 +12,6 @@ import com.example.kuby.security.repos.token.TokensRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,26 +19,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService {
     private final UserRepo userRepo;
     private final TokensRepo tokensRepo;
     private final PasswordEncoder encoder;
     @Transactional
-    public void createLocalUser(String email, String login, String password) {
+    public void createLocalUser(String email, String password) {
         if (userRepo.existsByEmailAndProvider(email, Provider.LOCAL))
             throw new BasicException(Map.of("email", "Email is already taken"), HttpStatus.BAD_REQUEST);
 
-        if (userRepo.existsByLogin(login))
-            throw new BasicException(Map.of("login", "Login is already taken"), HttpStatus.BAD_REQUEST);
-
         userRepo.save(UserEntity.builder()
                 .email(email)
-                .login(login)
                 .password(encoder.encode(password))
                 .isEmailSubmitted(false)
                 .registrationDate(LocalDateTime.now())
@@ -48,12 +44,13 @@ public class UserService implements UserDetailsService {
                 .build());
     }
 
-    @Override
-    @Cacheable(cacheNames = RedisCacheNames.USER_DETAILS, key = "#login")
-    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        UserEntity userEntity = userRepo.findByLogin(login).orElseThrow(() ->
-                new BasicException(Map.of("login", "User with such login not found"), HttpStatus.NOT_FOUND));
-        return new UserCache(userEntity.getLogin(), userEntity.getPassword(), userEntity.getRoles());
+    @Cacheable(cacheNames = RedisCacheNames.USERS_CACHE, key = "#email.concat(':').concat(#provider.toString())")
+    public Optional<UserCache> loadUserByUsername(String email, Provider provider) throws UsernameNotFoundException {
+        return userRepo.findUserCacheByEmailAndProvider(email, provider);
+    }
+
+    public Optional<UserEntity> findByEmailAndProvider(String email, Provider provider){
+        return userRepo.findByEmailAndProvider(email,provider);
     }
 
     @Transactional

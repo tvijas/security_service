@@ -3,16 +3,17 @@ package com.example.kuby.security.models.request;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
 public class LoginRequest {
-    @Valid
-    @NotBlank(message = "Login is blank")
-    private String login;
-    @Valid
+    @NotBlank(message = "Email is blank")
+    @Email(message = "Isn't email")
+    @Size(max = 40, message = "Email is too long")
+    private String email;
     @NotBlank(message = "Password is blank")
     private String password;
 }

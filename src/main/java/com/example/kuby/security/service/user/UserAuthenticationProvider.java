@@ -1,13 +1,17 @@
 package com.example.kuby.security.service.user;
 
 import com.example.kuby.exceptions.BasicException;
+import com.example.kuby.foruser.CustomUserDetails;
+import com.example.kuby.foruser.CustomUserPrincipal;
+import com.example.kuby.foruser.UserCache;
+import com.example.kuby.foruser.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -21,15 +25,18 @@ public class UserAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String username = authentication.getName();
+        CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
 
-        UserDetails user = userService.loadUserByUsername(username);
-
-        System.out.println("\n\n\n" + user.toString() + "\n\n\n");
+        UserEntity user = userService.findByEmailAndProvider(userPrincipal.email(), userPrincipal.provider()).orElseThrow(() ->
+                new BasicException(Map.of("email_or_password", "Email or password isn't correct"), HttpStatus.BAD_REQUEST));
 
         if (!passwordEncoder.matches(password, user.getPassword()))
-            throw new BasicException(Map.of("login_or_password", "Email or password isn't correct"), HttpStatus.BAD_REQUEST);
+            throw new BasicException(Map.of("email_or_password", "Email or password isn't correct"), HttpStatus.BAD_REQUEST);
+
+        if (!user.isEnabled())
+            throw new BasicException(Map.of("email", "Email is not verified"), HttpStatus.BAD_REQUEST);
+
 
         return new UsernamePasswordAuthenticationToken(
                 user,

@@ -3,16 +3,8 @@ package com.example.kuby.foruser;
 import com.example.kuby.security.models.enums.Provider;
 import com.example.kuby.security.models.enums.UserRoles;
 import com.example.kuby.todolist.Task;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,19 +22,17 @@ import java.util.UUID;
 @Entity
 @Data
 @org.springframework.data.relational.core.mapping.Table(name = "users")
-public class UserEntity implements  UserDetails, Serializable {
+public class UserEntity implements  CustomUserDetails, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @Column(unique = true)
-    private String login;
     @Column(nullable = false)
     private String email;
     private String password;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Provider provider;
-    private String loginProviderId;
+    private String providerId;
 //    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
 //    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime lastActiveDate;
@@ -71,15 +61,16 @@ public class UserEntity implements  UserDetails, Serializable {
         }
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
-
-    @Override //??????
-    public String getUsername() {
-        return this.email;
-    }
     @Override
     public String getPassword() {
         return this.password;
     }
+
+    @Override
+    public CustomUserPrincipal getPrincipal() {
+        return new CustomUserPrincipal(this.email,this.provider);
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -97,7 +88,7 @@ public class UserEntity implements  UserDetails, Serializable {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.isEmailSubmitted;
     }
 
 }

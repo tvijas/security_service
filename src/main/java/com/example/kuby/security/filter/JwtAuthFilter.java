@@ -1,14 +1,14 @@
 package com.example.kuby.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.example.kuby.foruser.UserEntity;
-import com.example.kuby.foruser.UserRepo;
+import com.example.kuby.foruser.CustomUserDetails;
+import com.example.kuby.foruser.UserCache;
 import com.example.kuby.security.models.enums.TokenType;
 import com.example.kuby.security.ratelimiter.GlobalRateLimit;
 import com.example.kuby.security.service.jwt.JwtPayloadValidatorService;
 import com.example.kuby.security.service.jwt.JwtValidatorService;
+import com.example.kuby.security.service.user.UserService;
 import com.example.kuby.security.util.PermittedUrls;
-import com.example.kuby.security.util.parsers.jwt.JwtPayloadParser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,8 +31,7 @@ import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.getPro
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
-
-    private final UserRepo userRepo;
+    private final UserService userService;
     private final GlobalRateLimit globalRateLimit;
     @Value("${global.rate.limit.turn.on}")
     private boolean turnOnRateLimit;
@@ -79,17 +78,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        Optional<UserEntity> optionalUser = userRepo.findByEmailAndProvider(
+        Optional<UserCache> userCache = userService.loadUserByUsername(
                 decodedAccessToken.getSubject(),
                 getProviderFromClaims(decodedAccessToken.getClaims())
         );
 
-        if (optionalUser.isEmpty()) {
+        if (userCache.isEmpty() || !userCache.get().isEnabled()) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             filterChain.doFilter(request, response);
             return;
         }
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(optionalUser.get(), null, optionalUser.get().getAuthorities());
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userCache.get(), null, userCache.get().getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);

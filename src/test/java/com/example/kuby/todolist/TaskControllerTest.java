@@ -55,7 +55,7 @@ public class TaskControllerTest extends TestContainersInitializer {
     public void init() throws Exception {
         UserEntity user = dbUtils.createUser();
 
-        LoginRequest loginRequest = new LoginRequest(user.getLogin(), "18-Bad-Boy-18");
+        LoginRequest loginRequest = new LoginRequest(user.getEmail(), "18-Bad-Boy-18");
 
         mvc.perform(post("/api/user/login")
                         .characterEncoding(StandardCharsets.UTF_8)

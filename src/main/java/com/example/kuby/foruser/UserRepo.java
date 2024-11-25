@@ -16,16 +16,14 @@ import java.util.UUID;
 @Repository
 public interface UserRepo extends JpaRepository<UserEntity, UUID> {
     Optional<UserEntity> findByEmailAndProvider(String email, Provider provider);
+     @Query("SELECT new com.example.kuby.foruser.UserCache(u.id, u.email, u.provider, u.roles, u.isEmailSubmitted) " +
+            "FROM UserEntity u WHERE u.email = :email AND u.provider = :provider")
+    Optional<UserCache> findUserCacheByEmailAndProvider(@Param("email") String email,
+                                              @Param("provider") Provider provider);
     Boolean existsByEmailAndProvider(String email, Provider provider);
-    Boolean existsByLogin(String login);
-    Optional<UserEntity> findByLogin(String login);
-    Optional<UserEntity> findByLoginProviderIdAndProvider(String loginProviderId, Provider provider);
+    Optional<UserEntity> findByProviderIdAndProvider(String ProviderId, Provider provider);
     @Modifying
     @Transactional
     @Query("UPDATE UserEntity u SET u.isEmailSubmitted = true WHERE u.email = :email AND u.provider = :provider")
     int updateIsEmailSubmittedByEmailAndProvider(@Param("email") String email, @Param("provider") Provider provider);
-    @Modifying
-    @Transactional
-    @Query("UPDATE UserEntity u SET u.login = :login, u.isEmailSubmitted = true WHERE u.email = :email AND u.provider = :provider")
-    int updateLoginAndSetEmailSubmittedByEmailAndProvider(@Param("login") String login, @Param("email") String email, @Param("provider") Provider provider);
 }

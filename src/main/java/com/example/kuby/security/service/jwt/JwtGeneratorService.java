@@ -143,7 +143,7 @@ public class JwtGeneratorService {
 
     private String generateBasicToken(UserEntity user, Tokens tokens, TokenType tokenType, Instant expiration) {
         return JWT.create()
-                .withSubject(user.getUsername())
+                .withSubject(user.getEmail())
                 .withClaim("userId", user.getId().toString())
                 .withClaim("jwtId", tokens.getRefreshToken().getId().toString())
                 .withClaim("familyId", tokens.getId().toString())

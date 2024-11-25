@@ -5,7 +5,6 @@ import com.example.kuby.security.models.enums.EmailCodeType;
 import com.example.kuby.security.models.enums.Provider;
 import com.example.kuby.security.models.request.ChangePasswordRequest;
 import com.example.kuby.security.models.request.LoginRequest;
-import com.example.kuby.security.models.request.OauthVerificationRequest;
 import com.example.kuby.security.models.request.SignUpRequest;
 import com.example.kuby.security.models.tokens.TokenPair;
 import com.example.kuby.security.ratelimiter.WithRateLimitProtection;
@@ -41,7 +40,7 @@ public class UserAuthController {
     @Transactional
     public ResponseEntity<Void> register(@RequestBody @Valid SignUpRequest request) {
 
-        userService.createLocalUser(request.getEmail(), request.getLogin(), request.getPassword());
+        userService.createLocalUser(request.getEmail(), request.getPassword());
 
         submissionCodeService.sendCodeToEmail(request.getEmail(), EmailCodeType.SUBMIT_EMAIL, Provider.LOCAL);
 
@@ -53,19 +52,6 @@ public class UserAuthController {
     public ResponseEntity<Void> verifyEmail(@RequestParam String code, @RequestParam String email) {
 
         submissionCodeService.verifySubmissionEmailCode(code, email);
-
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/verify/oauth")
-    @WithRateLimitProtection
-    public ResponseEntity<Void> verifyEmail(@Valid @RequestBody OauthVerificationRequest body) {
-        submissionCodeService.verifyOauthAccount(
-                body.getCode(),
-                body.getEmail(),
-                getProviderFromString(body.getProvider()),
-                body.getLogin()
-        );
 
         return ResponseEntity.ok().build();
     }
@@ -84,7 +70,7 @@ public class UserAuthController {
     public ResponseEntity<Void> login(@RequestBody @Valid LoginRequest request) {
 
         TokenPair tokenPair = userAuthService
-                .authenticateAndGenerateTokens(request.getLogin(),request.getPassword());
+                .authenticateAndGenerateTokens(request.getEmail(),request.getPassword(),Provider.LOCAL);
 
         return ResponseEntity.ok()
                 .header("Authorization", "Bearer " + tokenPair.getAccessTokenValue())
