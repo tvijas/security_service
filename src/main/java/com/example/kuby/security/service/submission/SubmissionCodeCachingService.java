@@ -24,30 +24,28 @@ class SubmissionCodeCachingService {
 
         String code = codeGenerator.generateCode();
 
-        redisTemplate.opsForValue().set(EMAIL_SUBMISSION_CODE_PREFIX + code + ":" + provider.toString().toUpperCase(), email);
-
-        redisTemplate.expire(EMAIL_SUBMISSION_CODE_PREFIX + code, Duration.ofMinutes(5));
+        redisTemplate.opsForValue().set(EMAIL_SUBMISSION_CODE_PREFIX + code + ":" + provider,
+                email,Duration.ofMinutes(5));
 
         return code;
     }
 
     public boolean isEmailSubmissionCodeExists(String code, String email, Provider provider) {
-        String value = redisTemplate.opsForValue().get(EMAIL_SUBMISSION_CODE_PREFIX + code + ":" + provider.toString().toUpperCase());
+        String value = redisTemplate.opsForValue().get(EMAIL_SUBMISSION_CODE_PREFIX + code + ":" + provider);
         return value != null && value.equals(email);
     }
 
     public String createChangePasswordSubmissionCodeWithExpiration(String email) {
         String code = codeGenerator.generateCode();
 
-        redisTemplate.opsForValue().set(PASSWORD_CHANGE_SUBMISSION_CODE_PREFIX + code, email);
-        redisTemplate.expire(PASSWORD_CHANGE_SUBMISSION_CODE_PREFIX + code, Duration.ofMinutes(5));
+        redisTemplate.opsForValue().set(PASSWORD_CHANGE_SUBMISSION_CODE_PREFIX + code,
+                email,Duration.ofMinutes(5));
 
         return code;
     }
 
     public void cacheEmailAndNewPasswordUntilSubmission(String email, String password) {
-        redisTemplate.opsForValue().set(NEW_PASSWORD + email, password);
-        redisTemplate.opsForValue().getAndExpire(NEW_PASSWORD + email, Duration.ofMinutes(5));
+        redisTemplate.opsForValue().set(NEW_PASSWORD + email, password,Duration.ofMinutes(5));
     }
 
     public Boolean isChangePasswordSubmissionCodeExists(String code, String email) {
