@@ -11,7 +11,7 @@ import com.example.kuby.security.ratelimiter.WithRateLimitProtection;
 import com.example.kuby.security.service.jwt.JwtGeneratorService;
 import com.example.kuby.security.service.submission.SubmissionCodeService;
 import com.example.kuby.security.service.user.UserAuthService;
-import com.example.kuby.security.service.user.UserService;
+import com.example.kuby.foruser.UserService;
 import com.example.kuby.security.util.annotations.validators.email.EmailExists;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 import static com.example.kuby.security.util.parsers.AuthHeaderParser.recoverToken;
-import static com.example.kuby.security.util.parsers.ProviderEnumParser.getProviderFromString;
 
 @RestController
 @RequestMapping("/api/user")

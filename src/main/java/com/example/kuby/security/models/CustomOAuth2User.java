@@ -1,7 +1,7 @@
 package com.example.kuby.security.models;
 
 import com.example.kuby.foruser.UserEntity;
-import com.example.kuby.security.models.enums.UserRoles;
+import com.example.kuby.security.models.enums.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -23,7 +23,7 @@ public class CustomOAuth2User implements OAuth2User {
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.user.getRoles() == UserRoles.ADMIN) {
+        if (this.user.getRoles() == UserRole.ADMIN) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
         }
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));

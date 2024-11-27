@@ -7,8 +7,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-public final class InstantClaim implements Claim {
+final class InstantClaim implements Claim {
     private final Instant instant;
     private final boolean isMissing;
 

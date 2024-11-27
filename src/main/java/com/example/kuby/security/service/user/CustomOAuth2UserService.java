@@ -3,7 +3,7 @@ package com.example.kuby.security.service.user;
 import com.example.kuby.foruser.UserEntity;
 import com.example.kuby.security.models.CustomOAuth2User;
 import com.example.kuby.security.models.enums.Provider;
-import com.example.kuby.security.models.enums.UserRoles;
+import com.example.kuby.security.models.enums.UserRole;
 import com.example.kuby.foruser.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -11,7 +11,6 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -55,7 +54,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .providerId(providerId)
                     .registrationDate(LocalDateTime.now())
                     .isEmailSubmitted(false)
-                    .roles(UserRoles.USER)
+                    .roles(UserRole.USER)
                     .build()),
                     oAuth2User.getAttributes());
         }

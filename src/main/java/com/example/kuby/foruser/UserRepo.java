@@ -16,10 +16,6 @@ import java.util.UUID;
 @Repository
 public interface UserRepo extends JpaRepository<UserEntity, UUID> {
     Optional<UserEntity> findByEmailAndProvider(String email, Provider provider);
-     @Query("SELECT new com.example.kuby.foruser.UserCache(u.id, u.email, u.provider, u.roles, u.isEmailSubmitted) " +
-            "FROM UserEntity u WHERE u.email = :email AND u.provider = :provider")
-    Optional<UserCache> findUserCacheByEmailAndProvider(@Param("email") String email,
-                                              @Param("provider") Provider provider);
     Boolean existsByEmailAndProvider(String email, Provider provider);
     Optional<UserEntity> findByProviderIdAndProvider(String ProviderId, Provider provider);
     @Modifying

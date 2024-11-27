@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public final class StringClaim implements Claim {
+final class StringClaim implements Claim {
     private final String value;
     private final boolean isMissing;
 

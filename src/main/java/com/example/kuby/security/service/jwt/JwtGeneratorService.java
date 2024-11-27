@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.example.kuby.security.constant.JwtClaimKey.*;
 import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.*;
 
 
@@ -70,7 +71,7 @@ public class JwtGeneratorService {
             throw new BasicException(Map.of("tokens", "Tokens are not linked too each other"), HttpStatus.BAD_REQUEST);
 
         Map<String, Claim> claims = parsePayloadFromJwt(refresh_token);
-        Instant expiresAt = getExpiresAt(claims);
+        Instant expiresAt = decodedAccessToken.getExpiresAtAsInstant();
         Provider provider = getProviderFromClaims(claims);
         String email = decodedRefreshToken.getSubject();
 
@@ -144,11 +145,12 @@ public class JwtGeneratorService {
     private String generateBasicToken(UserEntity user, Tokens tokens, TokenType tokenType, Instant expiration) {
         return JWT.create()
                 .withSubject(user.getEmail())
-                .withClaim("userId", user.getId().toString())
-                .withClaim("jwtId", tokens.getRefreshToken().getId().toString())
-                .withClaim("familyId", tokens.getId().toString())
-                .withClaim("tokenType", tokenType.toString())
-                .withClaim("provider", user.getProvider().toString().toUpperCase())
+                .withClaim(USER_ID, user.getId().toString())
+                .withClaim(JWT_ID, tokens.getRefreshToken().getId().toString())
+                .withClaim(FAMILY_ID, tokens.getId().toString())
+                .withClaim(TOKEN_TYPE, tokenType.toString())
+                .withClaim(PROVIDER, user.getProvider().toString().toUpperCase())
+                .withClaim(ROLE, user.getRoles().toString())
                 .withExpiresAt(expiration)
                 .sign(algorithm);
     }

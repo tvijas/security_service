@@ -1,20 +1,16 @@
 package com.example.kuby.foruser;
 
 import com.example.kuby.security.models.enums.Provider;
-import com.example.kuby.security.models.enums.UserRoles;
+import com.example.kuby.security.models.enums.UserRole;
 import com.example.kuby.todolist.Task;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -43,7 +39,7 @@ public class UserEntity implements  CustomUserDetails, Serializable {
     private boolean isEmailSubmitted;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRoles roles;
+    private UserRole roles;
     @OneToMany(mappedBy = "creator",fetch = FetchType.LAZY)
     private List<Task> taskList = new ArrayList<>();
     @PrePersist
@@ -51,15 +47,15 @@ public class UserEntity implements  CustomUserDetails, Serializable {
         if (provider == null)
             this.provider = Provider.LOCAL;
         if(roles == null)
-            this.roles = UserRoles.USER;
+            this.roles = UserRole.USER;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.roles == UserRoles.ADMIN) {
+        if (this.roles == UserRole.ADMIN) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
         }
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
     @Override
     public String getPassword() {

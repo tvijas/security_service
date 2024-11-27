@@ -2,16 +2,13 @@ package com.example.kuby.test.utils;
 
 import com.example.kuby.foruser.UserEntity;
 import com.example.kuby.security.models.enums.Provider;
-import com.example.kuby.security.models.enums.UserRoles;
+import com.example.kuby.security.models.enums.UserRole;
 import com.example.kuby.foruser.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
-import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
@@ -33,7 +30,7 @@ public class DbUtils {
                 .isEmailSubmitted(true)
                 .provider(Provider.LOCAL)
                 .registrationDate(LocalDateTime.now())
-                .roles(UserRoles.USER)
+                .roles(UserRole.USER)
                 .build();
 
         userRepo.save(user);

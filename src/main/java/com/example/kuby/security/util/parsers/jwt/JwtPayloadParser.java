@@ -4,33 +4,29 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.kuby.exceptions.BasicException;
+import com.example.kuby.foruser.CustomUserDetails;
+import com.example.kuby.foruser.UserEntity;
 import com.example.kuby.security.models.enums.Provider;
-import jakarta.servlet.http.HttpServletRequest;
+import com.example.kuby.security.models.enums.UserRole;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static com.example.kuby.security.constant.JwtClaimKey.*;
 import static com.example.kuby.security.util.parsers.AuthHeaderParser.recoverToken;
-import static com.example.kuby.security.util.parsers.ProviderEnumParser.getProviderFromString;
 
 
 public final class JwtPayloadParser {
-    private JwtPayloadParser (){}
-    public static UUID parseUserIdFromAuthHeader(String header) {
-        String token = recoverToken(header).orElseThrow(() ->
-                new BasicException(Map.of("Authorization", "Invalid Authorization header"), HttpStatus.BAD_REQUEST));
-
-        return UUID.fromString(JWT.decode(token).getClaim("userId").asString());
+    private JwtPayloadParser() {
     }
 
     public static <T> T getClaimValueByKey(Map<String, Claim> claims, String key, Function<Claim, T> converter) {
         if (claims == null)
-            throw new IllegalStateException("Token claims not set");
+            throw new BasicException(Map.of(key, "Claim is null"), HttpStatus.BAD_REQUEST);
 
         Claim claim = claims.get(key);
         if (claim == null || claim.isMissing())
@@ -42,40 +38,36 @@ public final class JwtPayloadParser {
         try {
             return converter.apply(claim);
         } catch (Exception ex) {
-            throw new BasicException(Map.of(key, "Value is invalid"), HttpStatus.BAD_REQUEST);
+            throw new BasicException(Map.of(key, "Claim can not be parsed. Description: " + ex.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
     public static UUID getIdFromClaimsByKey(Map<String, Claim> claims, String key) {
-        return getClaimValueByKey(claims, key, claim -> {
-            try {
-                return UUID.fromString(claim.asString());
-            } catch (IllegalArgumentException ex) {
-                throw new BasicException(Map.of(key, "Not matches UUID pattern"), HttpStatus.BAD_REQUEST);
-            }
-        });
+        return getClaimValueByKey(claims, key, Converters::asUUID);
     }
 
     public static Instant getExpiresAt(Map<String, Claim> claims) {
-        return getClaimValueByKey(claims, "expiresAt", claim -> {
-            try {
-                return claim.asInstant();
-            } catch (Exception ex) {
-                throw new BasicException(Map.of("expiresAt", "Not matches pattern"), HttpStatus.BAD_REQUEST);
-            }
-        });
+        return getClaimValueByKey(claims, EXPIRES_AT, Converters::asInstant);
     }
 
     public static Provider getProviderFromClaims(Map<String, Claim> claims) {
-        return getClaimValueByKey(claims, "provider", claim -> getProviderFromString(claim.asString()));
+        return getClaimValueByKey(claims, PROVIDER, Converters::asProvider);
+    }
+
+    public static UserRole getUserRoleFromClaims(Map<String, Claim> claims) {
+        return getClaimValueByKey(claims, ROLE, Converters::asUserRole);
+    }
+    public static CustomUserDetails getUserDetailsFromClaims(Map<String, Claim> claims){
+        return UserEntity.builder()
+                .email(getClaimValueByKey(claims,EMAIL, Converters::asString))
+                .provider(getProviderFromClaims(claims))
+                .roles(getUserRoleFromClaims(claims))
+                .build();
     }
 
     public static Map<String, Claim> parsePayloadFromJwt(String jwt) {
         DecodedJWT decodedJWT = JWT.decode(jwt);
-        Map<String, Claim> claims = new HashMap<>(decodedJWT.getClaims());
-        claims.put("expiresAt", new InstantClaim(decodedJWT.getExpiresAtAsInstant()));
-        claims.put("email", new StringClaim(decodedJWT.getSubject()));
-        return claims;
+        return parsePayloadFromDecodedJwt(decodedJWT);
     }
 
     public static Map<String, Claim> parsePayloadFromDecodedJwt(DecodedJWT decodedJWT) {

@@ -1,17 +1,15 @@
 package com.example.kuby.security.service.user;
 
 import com.example.kuby.exceptions.BasicException;
-import com.example.kuby.foruser.CustomUserDetails;
 import com.example.kuby.foruser.CustomUserPrincipal;
-import com.example.kuby.foruser.UserCache;
 import com.example.kuby.foruser.UserEntity;
+import com.example.kuby.foruser.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 

@@ -11,8 +11,6 @@ public class SecurePasswordValidator implements ConstraintValidator<SecurePasswo
 
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
-        Optional<org.passay.PasswordValidator>  optionalPasswordValidator = passwordValidator.validate(password);
-
-        return optionalPasswordValidator.isEmpty();
+        return passwordValidator.validate(password);
     }
 }

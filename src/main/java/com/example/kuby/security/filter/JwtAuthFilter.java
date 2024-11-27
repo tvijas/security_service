@@ -1,13 +1,12 @@
 package com.example.kuby.security.filter;
 
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.kuby.foruser.CustomUserDetails;
-import com.example.kuby.foruser.UserCache;
 import com.example.kuby.security.models.enums.TokenType;
 import com.example.kuby.security.ratelimiter.GlobalRateLimit;
 import com.example.kuby.security.service.jwt.JwtPayloadValidatorService;
 import com.example.kuby.security.service.jwt.JwtValidatorService;
-import com.example.kuby.security.service.user.UserService;
 import com.example.kuby.security.util.PermittedUrls;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,17 +20,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
+import static com.example.kuby.security.constant.JwtClaimKey.JWT_ID;
 import static com.example.kuby.security.util.parsers.AuthHeaderParser.recoverToken;
-import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.getIdFromClaimsByKey;
-import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.getProviderFromClaims;
+import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.*;
 
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
-    private final UserService userService;
     private final GlobalRateLimit globalRateLimit;
     @Value("${global.rate.limit.turn.on}")
     private boolean turnOnRateLimit;
@@ -66,10 +65,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             response.setStatus(401);
             return;
         }
+
         DecodedJWT decodedAccessToken = optionalDecodedAccessToken.get();
+        Map<String, Claim> claims = parsePayloadFromDecodedJwt(decodedAccessToken);
+        CustomUserDetails userDetails = getUserDetailsFromClaims(claims);
 
         boolean isTokenClaimValid = jwtPayloadValidatorService.isTokenClaimValid(
-                getIdFromClaimsByKey(decodedAccessToken.getClaims(), "jwtId").toString(),
+                getIdFromClaimsByKey(claims, JWT_ID).toString(),
                 decodedAccessToken, response
         );
 
@@ -78,18 +80,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        Optional<UserCache> userCache = userService.loadUserByUsername(
-                decodedAccessToken.getSubject(),
-                getProviderFromClaims(decodedAccessToken.getClaims())
-        );
-
-        if (userCache.isEmpty() || !userCache.get().isEnabled()) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userCache.get(), null, userCache.get().getAuthorities());
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userDetails.getPrincipal(), null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
