@@ -1,7 +1,8 @@
 package com.example.kuby.security.controller;
 
 import com.example.kuby.exceptions.BasicException;
-import com.example.kuby.security.models.enums.EmailCodeType;
+import com.example.kuby.foruser.CustomUserDetails;
+import com.example.kuby.foruser.UserEntity;
 import com.example.kuby.security.models.enums.Provider;
 import com.example.kuby.security.models.request.ChangePasswordRequest;
 import com.example.kuby.security.models.request.LoginRequest;
@@ -9,16 +10,13 @@ import com.example.kuby.security.models.request.SignUpRequest;
 import com.example.kuby.security.models.tokens.TokenPair;
 import com.example.kuby.security.ratelimiter.WithRateLimitProtection;
 import com.example.kuby.security.service.jwt.JwtGeneratorService;
-import com.example.kuby.security.service.submission.SubmissionCodeService;
 import com.example.kuby.security.service.user.UserAuthService;
-import com.example.kuby.foruser.UserService;
 import com.example.kuby.security.util.annotations.validators.email.EmailExists;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -29,19 +27,14 @@ import static com.example.kuby.security.util.parsers.AuthHeaderParser.recoverTok
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserAuthController {
-    private final UserService userService;
     private final UserAuthService userAuthService;
-    private final SubmissionCodeService submissionCodeService;
     private final JwtGeneratorService jwtGeneratorService;
 
     @PostMapping("/register")
     @WithRateLimitProtection
-    @Transactional
     public ResponseEntity<Void> register(@RequestBody @Valid SignUpRequest request) {
 
-        userService.createLocalUser(request.getEmail(), request.getPassword());
-
-        submissionCodeService.sendCodeToEmail(request.getEmail(), EmailCodeType.SUBMIT_EMAIL, Provider.LOCAL);
+        userAuthService.createLocalUserAndSendSubmissionLink(request.getEmail(), request.getPassword());
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -50,16 +43,16 @@ public class UserAuthController {
     @WithRateLimitProtection
     public ResponseEntity<Void> verifyEmail(@RequestParam String code, @RequestParam String email) {
 
-        submissionCodeService.verifySubmissionEmailCode(code, email);
+        userAuthService.verifyUserAccount(code, email);
 
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/resend-submission-url")
+    @PostMapping("/resend-submission-link")
     @WithRateLimitProtection(rateLimit = 3, rateDuration = 180_000)
     public ResponseEntity<Void> submitEmail(@RequestParam @Valid @Email @EmailExists String email) {
 
-        submissionCodeService.sendCodeToEmail(email, EmailCodeType.SUBMIT_EMAIL, Provider.LOCAL);
+        userAuthService.sendMailWithAccountSubmissionLink(email);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -68,8 +61,9 @@ public class UserAuthController {
     @WithRateLimitProtection
     public ResponseEntity<Void> login(@RequestBody @Valid LoginRequest request) {
 
-        TokenPair tokenPair = userAuthService
-                .authenticateAndGenerateTokens(request.getEmail(),request.getPassword(),Provider.LOCAL);
+         UserEntity user = userAuthService.authenticate(request.getEmail(), request.getPassword(), Provider.LOCAL);
+
+        TokenPair tokenPair = jwtGeneratorService.generateTokens(user);
 
         return ResponseEntity.ok()
                 .header("Authorization", "Bearer " + tokenPair.getAccessTokenValue())
@@ -92,24 +86,20 @@ public class UserAuthController {
                 .header("X-Refresh-Token", tokenPair.getRefreshTokenValue())
                 .build();
     }
-
     @PostMapping("/change-password")
     @WithRateLimitProtection
     public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
-        submissionCodeService.sendCodeToEmail(request.getEmail(), EmailCodeType.CHANGE_PASSWORD, Provider.LOCAL);
 
-        submissionCodeService.cacheEmailAndPassword(request.getEmail(), request.getPassword());
+        userAuthService.cachePasswordAndSendPasswordChangeSubmissionLink(request.getEmail(), request.getPassword());
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
-    @PostMapping("/summit-password-change")
+    @PostMapping("/submit-password-change")
     @WithRateLimitProtection
     public ResponseEntity<Void> submitPasswordChange(@RequestParam String code, @RequestParam String email) {
 
-        String newPassword = submissionCodeService.verifyChangePasswordSubmissionEmailCode(code, email);
-
-        userService.changePassword(email, newPassword);
+        userAuthService.submitPasswordChange(email,code);
 
         return ResponseEntity.ok().build();
     }

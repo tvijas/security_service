@@ -10,12 +10,12 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.kuby.exceptions.BasicException;
 import com.example.kuby.foruser.UserEntity;
 import com.example.kuby.foruser.UserRepo;
-import com.example.kuby.security.models.tokens.AccessToken;
-import com.example.kuby.security.models.tokens.RefreshToken;
-import com.example.kuby.security.models.tokens.TokenPair;
 import com.example.kuby.security.models.entity.tokens.Tokens;
 import com.example.kuby.security.models.enums.Provider;
 import com.example.kuby.security.models.enums.TokenType;
+import com.example.kuby.security.models.tokens.AccessToken;
+import com.example.kuby.security.models.tokens.RefreshToken;
+import com.example.kuby.security.models.tokens.TokenPair;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +29,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.example.kuby.security.constant.JwtClaimKey.*;
-import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.*;
+import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.getProviderFromClaims;
+import static com.example.kuby.security.util.parsers.jwt.JwtPayloadParser.parsePayloadFromDecodedJwt;
 
 
 @Service
@@ -70,7 +71,7 @@ public class JwtGeneratorService {
         if (!areTokensLinked(decodedAccessToken, decodedRefreshToken))
             throw new BasicException(Map.of("tokens", "Tokens are not linked too each other"), HttpStatus.BAD_REQUEST);
 
-        Map<String, Claim> claims = parsePayloadFromJwt(refresh_token);
+        Map<String, Claim> claims = parsePayloadFromDecodedJwt(decodedRefreshToken);
         Instant expiresAt = decodedAccessToken.getExpiresAtAsInstant();
         Provider provider = getProviderFromClaims(claims);
         String email = decodedRefreshToken.getSubject();
@@ -78,7 +79,6 @@ public class JwtGeneratorService {
         UserEntity user = userRepo.findByEmailAndProvider(email, provider).orElseThrow(() ->
                 new BasicException(Map.of("refreshToken", "Email from token's subject not found"), HttpStatus.NOT_FOUND));
 
-        TokenPair tokenPair;
         try {
             Instant accessTokenExpiration = calculateExpirationInstantWithMicros(accessTokenDurationInSeconds);
             Instant refreshTokenExpiration = calculateExpirationInstantWithMicros(refreshTokenDurationInSeconds);
@@ -87,20 +87,17 @@ public class JwtGeneratorService {
 
             String accessToken = regenerateAccessTokenWithNewExpiration(decodedAccessToken, accessTokenExpiration);
             String refreshToken = generateBasicToken(user, tokens, TokenType.REFRESH, accessTokenExpiration);
-            tokenPair = new TokenPair(new AccessToken(accessToken),new RefreshToken(refreshToken));
-
+            return new TokenPair(new AccessToken(accessToken), new RefreshToken(refreshToken));
         } catch (JWTCreationException exception) {
             throw new BasicException(
                     Map.of("jwt", "Error occurred while refreshing tokens. Error description: " + exception),
                     HttpStatus.BAD_REQUEST
             );
         }
-        return tokenPair;
     }
 
     @Transactional
     public TokenPair generateTokens(UserEntity user) {
-        TokenPair tokenPair;
         try {
             Instant accessTokenExpiration = calculateExpirationInstantWithMicros(accessTokenDurationInSeconds);
             Instant refreshTokenExpiration = calculateExpirationInstantWithMicros(refreshTokenDurationInSeconds);
@@ -110,15 +107,13 @@ public class JwtGeneratorService {
 
             String accessToken = generateBasicToken(user, tokens, TokenType.ACCESS, accessTokenExpiration);
             String refreshToken = generateBasicToken(user, tokens, TokenType.REFRESH, refreshTokenExpiration);
-            tokenPair = new TokenPair(new AccessToken(accessToken), new RefreshToken(refreshToken));
-
+            return new TokenPair(new AccessToken(accessToken), new RefreshToken(refreshToken));
         } catch (JWTCreationException exception) {
             throw new BasicException(
                     Map.of("jwt", "Error occurred while generating tokens. Error description: " + exception),
                     HttpStatus.BAD_REQUEST
             );
         }
-        return tokenPair;
     }
 
     public String generateTokenWithNewClaims(Map<String, Object> newClaims, DecodedJWT decodedJWT) {

@@ -106,7 +106,7 @@ public class UserAuthControllerTest extends TestContainersInitializer{
                         .content(objMapper.writeValueAsString(changePasswordRequest)))
                 .andExpect(status().isAccepted());
 
-        mvc.perform(post("/api/user/summit-password-change")
+        mvc.perform(post("/api/user/submit-password-change")
                         .param("code", "STRING_PIZDATIY_CODE")
                         .param("email", email))
                 .andExpect(status().isOk())

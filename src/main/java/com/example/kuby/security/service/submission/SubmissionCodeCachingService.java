@@ -13,25 +13,24 @@ import java.time.Duration;
 import static com.example.kuby.security.constant.RedisPrefixes.*;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
-class SubmissionCodeCachingService {
+public class SubmissionCodeCachingService {
 
     private final StringRedisTemplate redisTemplate;
     private final CodeGenerator codeGenerator;
 
-    public String createEmailSubmissionCodeWithExpiration(String email, Provider provider) {
+    public String createEmailSubmissionCodeWithExpiration(String email) {
 
         String code = codeGenerator.generateCode();
 
-        redisTemplate.opsForValue().set(EMAIL_SUBMISSION_CODE_PREFIX + code + ":" + provider,
+        redisTemplate.opsForValue().set(EMAIL_SUBMISSION_CODE_PREFIX + code,
                 email,Duration.ofMinutes(5));
 
         return code;
     }
 
-    public boolean isEmailSubmissionCodeExists(String code, String email, Provider provider) {
-        String value = redisTemplate.opsForValue().get(EMAIL_SUBMISSION_CODE_PREFIX + code + ":" + provider);
+    public boolean isEmailSubmissionCodeExists(String code, String email) {
+        String value = redisTemplate.opsForValue().get(EMAIL_SUBMISSION_CODE_PREFIX + code);
         return value != null && value.equals(email);
     }
 

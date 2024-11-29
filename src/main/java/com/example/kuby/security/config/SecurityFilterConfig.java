@@ -43,8 +43,7 @@ public class SecurityFilterConfig {
                                             "/swagger-ui.html")
                                     .permitAll()
 
-                                    .requestMatchers("/api/user/**").permitAll()
-                                    .requestMatchers(HttpMethod.POST, "/api/user/token/refresh").permitAll()
+                                    .requestMatchers(HttpMethod.POST,"/api/user/**").permitAll()
 
                                     .requestMatchers(HttpMethod.GET, "/login/oauth2/code/google/**").permitAll()
                                     .requestMatchers(HttpMethod.GET, "/oauth2/authorization/google").permitAll()

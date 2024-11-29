@@ -36,6 +36,10 @@ public class UserService {
                 .roles(UserRole.USER)
                 .build());
     }
+    public void updateIsEmailSubmittedByEmailAndProvider(String email, Provider provider){
+        if (userRepo.updateIsEmailSubmittedByEmailAndProvider(email, provider) != 1)
+            throw new BasicException(Map.of("email", "User with such email not found"), HttpStatus.NOT_FOUND);
+    }
 
     public Optional<UserEntity> findByEmailAndProvider(String email, Provider provider){
         return userRepo.findByEmailAndProvider(email,provider);
