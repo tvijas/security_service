@@ -18,11 +18,9 @@ public class WebConfig implements WebMvcConfigurer {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
 
-        // Разрешаем запросы из любого источника
         config.addAllowedOriginPattern("*");
         config.setAllowCredentials(true);
 
-        // Разрешаем использование следующих методов HTTP
         config.addAllowedMethod("GET");
         config.addAllowedMethod("POST");
         config.addAllowedMethod("PUT");
@@ -30,7 +28,6 @@ public class WebConfig implements WebMvcConfigurer {
         config.addAllowedMethod("PATCH");
         config.addAllowedMethod("OPTIONS");
 
-        // Разрешаем использование следующих заголовков
         config.addAllowedHeader("Origin");
         config.addAllowedHeader("Content-Type");
         config.addAllowedHeader("Accept");

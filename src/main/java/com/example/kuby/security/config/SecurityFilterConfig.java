@@ -1,7 +1,10 @@
 package com.example.kuby.security.config;
 
 import com.example.kuby.security.filter.JwtAuthFilter;
-import com.example.kuby.security.service.user.*;
+import com.example.kuby.security.service.user.CustomOAuth2UserService;
+import com.example.kuby.security.service.user.OauthFailureHandler;
+import com.example.kuby.security.service.user.OauthSuccessHandler;
+import com.example.kuby.security.service.user.UserAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,14 +24,15 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableMethodSecurity(securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityFilterConfig {
-    private final JwtAuthFilter jwtAuthFilter;
-    private final CustomOAuth2UserService oauthUserService;
-    private final UserAuthenticationEntryPoint userAuthenticationEntryPoint;
-    private final OauthFailureHandler oauthFailureHandler;
-    private final OauthSuccessHandler oauthSuccessHandler;
-
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthFilter jwtAuthFilter,
+            CustomOAuth2UserService oauthUserService,
+            UserAuthenticationEntryPoint userAuthenticationEntryPoint,
+            OauthFailureHandler oauthFailureHandler,
+            OauthSuccessHandler oauthSuccessHandler
+    ) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(withDefaults())
@@ -43,7 +47,7 @@ public class SecurityFilterConfig {
                                             "/swagger-ui.html")
                                     .permitAll()
 
-                                    .requestMatchers(HttpMethod.POST,"/api/user/**").permitAll()
+                                    .requestMatchers(HttpMethod.POST, "/api/user/**").permitAll()
 
                                     .requestMatchers(HttpMethod.GET, "/login/oauth2/code/google/**").permitAll()
                                     .requestMatchers(HttpMethod.GET, "/oauth2/authorization/google").permitAll()

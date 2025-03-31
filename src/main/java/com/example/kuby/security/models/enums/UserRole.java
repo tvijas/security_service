@@ -1,16 +1,10 @@
 package com.example.kuby.security.models.enums;
 
 public enum UserRole {
-    ADMIN("ADMIN"),
-    USER("USER");
+    ADMIN, USER;
 
-    private String role;
-
-    UserRole(String role) {
-        this.role = role;
-    }
-
-    public String getValue() {
-        return role;
+    @Override
+    public String toString() {
+        return super.toString();
     }
 }

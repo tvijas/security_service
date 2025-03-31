@@ -26,7 +26,7 @@ public class UserService {
     public void createLocalUser(String email, String password) {
         if (userRepo.existsByEmailAndProvider(email, Provider.LOCAL))
             throw new BasicException(Map.of("email", "Email is already taken"), HttpStatus.BAD_REQUEST);
-
+        
         userRepo.save(UserEntity.builder()
                 .email(email)
                 .password(encoder.encode(password))

@@ -11,21 +11,23 @@ import static com.example.kuby.security.util.parsers.ProviderEnumParser.getProvi
 import static com.example.kuby.security.util.parsers.UserRolesParser.getUserRolesFromString;
 
 class Converters {
-    public static UUID asUUID( Claim claim) {
-            return UUID.fromString(claim.asString());
+    public static UUID asUUID(Claim claim) {
+        return UUID.fromString(claim.asString());
     }
+
     public static String asString(Claim claim) {
         return claim.asString();
     }
 
-    public static Instant asInstant(Claim claim){
+    public static Instant asInstant(Claim claim) {
         return claim.asInstant();
     }
 
-    public static Provider asProvider(Claim claim){
+    public static Provider asProvider(Claim claim) {
         return getProviderFromString(claim.asString());
     }
-    public static UserRole asUserRole(Claim claim){
+
+    public static UserRole asUserRole(Claim claim) {
         return getUserRolesFromString(claim.asString());
     }
 }

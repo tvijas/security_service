@@ -2,12 +2,10 @@ package com.example.kuby.security.config;
 
 import com.example.kuby.security.service.user.UserAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 
 import java.util.Collections;
 
@@ -15,12 +13,9 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class AuthenticationManagerConfig {
     private final UserAuthenticationProvider userAuthenticationProvider;
-//    @Bean
-//    AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-//        return authenticationConfiguration.getAuthenticationManager();
-//    }
-@Bean
-public AuthenticationManager authenticationManager() {
-    return new ProviderManager(Collections.singletonList(userAuthenticationProvider));
-}
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        return new ProviderManager(Collections.singletonList(userAuthenticationProvider));
+    }
 }

@@ -6,8 +6,8 @@ import java.security.SecureRandom;
 
 @Component
 public final class CodeGenerator {
-    private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    private static final int CODE_LENGTH = 16;
+    private final String CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private final int CODE_LENGTH = 16;
     private final StringBuilder code = new StringBuilder();
     private final SecureRandom random = new SecureRandom();
 
