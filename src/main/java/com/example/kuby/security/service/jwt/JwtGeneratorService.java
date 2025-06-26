@@ -141,7 +141,7 @@ public class JwtGeneratorService {
         return JWT.create()
                 .withSubject(user.getEmail())
                 .withClaim(USER_ID, user.getId().toString())
-                .withClaim(JWT_ID, tokens.getRefreshToken().getId().toString())
+                .withClaim(JWT_ID, tokenType == TokenType.REFRESH_TOKEN ? tokens.getRefreshToken().getId().toString() : tokens.getAccessToken().getId().toString())
                 .withClaim(FAMILY_ID, tokens.getId().toString())
                 .withClaim(TOKEN_TYPE, tokenType.toString())
                 .withClaim(PROVIDER, user.getProvider().toString().toUpperCase())
